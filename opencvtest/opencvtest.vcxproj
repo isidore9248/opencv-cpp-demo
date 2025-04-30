@@ -129,10 +129,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="camCap.cpp" />
+    <ClCompile Include="laneDetect.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="threadpool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camCap.h" />
+    <ClInclude Include="laneDetect.h" />
+    <ClInclude Include="threadpool.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\readme.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
