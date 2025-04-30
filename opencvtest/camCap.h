@@ -12,44 +12,40 @@
 #include <atomic>
 #include <condition_variable>
 
+#include "laneDetect.h"
+
 class camCap
 {
 public:
 	camCap() : running(true) {}
 	~camCap() { stop(); }
-	void stop();
-	bool isRunning() const;
 
+	//最终外部调用部分
 public:
-	void captureThread(int camera_index);
 	void displayLoop(const std::string& windowName = "camPic");
+	void captureThread(int camera_index);
 	void LaneDetectThread();
 
 private:
-	//显示帧队列私有函数
-	bool getFrame(cv::Mat& frame);
-	bool getProcessedFrame(cv::Mat& frame);
+	void stop();
+	bool isRunning() const;
 
-private:
-	// Helper functions for LaneDetectThread
 	bool getFrameFromQueue(cv::Mat& frame); // 从队列获取帧
-	void preprocessFrame(const cv::Mat& input, cv::Mat& gray, cv::Mat& binary); // 预处理帧（灰度+Canny）
-	void findAndFilterContours(const cv::Mat& binary, const cv::Size& imageSize,
-		std::vector<std::vector<cv::Point>>& filteredContours); // 查找并过滤轮廓
-	void drawFilteredContours(const cv::Size& imageSize, const cv::Scalar& color,
-		const std::vector<std::vector<cv::Point>>& contours, cv::Mat& outputImage); // 绘制过滤后的轮廓
-	void combineAndStoreFrame(const cv::Mat& originalFrame, const cv::Mat& lineOverlay); // 合并图像并存储
-	cv::Mat fitLines(cv::Mat& image, cv::Point* left_line, cv::Point* right_line);
+
+	static laneDetect& GetLaneDetectInstance()
+	{
+		static laneDetect instance;
+		return instance;
+	}
 
 private:
-	cv::Mat processed_frame_;	//显示的最终图像
-	std::mutex processed_frame_mutex_;	//显示图像互斥锁
 	std::queue<cv::Mat> frame_queue; //帧队列
 	std::mutex frame_mutex; //帧队列互斥锁
 
 	std::condition_variable frame_cv;
 	std::atomic<bool> running; // 线程运行标志
 
+	//车道检测使用的私有变量
 	cv::Point left_line[2];  // 定义左侧直线端点
 	cv::Point right_line[2]; // 定义右侧直线端点
 };
