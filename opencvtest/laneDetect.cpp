@@ -1,16 +1,19 @@
 #include "camCap.h"
 #include "laneDetect.h"
 
+#include <opencv2/opencv.hpp>
+
 /// <summary>
 /// 对图像进行预处理，包括灰度转换和 Canny 边缘检测。
 /// </summary>
 /// <param name="input">输入的原始图像。</param>
 /// <param name="gray">输出的灰度图像。</param>
 /// <param name="binary">输出的二值图像。</param>
-void laneDetect::preprocessFrame(const cv::Mat& input, cv::Mat& gray, cv::Mat& binary)
+void laneDetect::preprocessFrame(const cv::Mat &input, cv::Mat &gray, cv::Mat &binary)
 {
 	cv::cvtColor(input, gray, cv::COLOR_BGR2GRAY);
-	cv::Canny(gray, binary, 150, 300); // Canny 边缘检测
+	// Canny 边缘检测
+	cv::Canny(gray, binary, 150, 300); //*Canny 检测的是亮度变化剧烈的地方，而不是特定的颜色。
 }
 
 /// <summary>
@@ -19,14 +22,14 @@ void laneDetect::preprocessFrame(const cv::Mat& input, cv::Mat& gray, cv::Mat& b
 /// <param name="binary">输入的二值图像。</param>
 /// <param name="imageSize">图像尺寸。</param>
 /// <param name="filteredContours">输出的过滤后的轮廓集合。</param>
-void laneDetect::findAndFilterContours(const cv::Mat& binary, const cv::Size& imageSize, std::vector<std::vector<cv::Point>>& filteredContours)
+void laneDetect::findAndFilterContours(const cv::Mat &binary, const cv::Size &imageSize, std::vector<std::vector<cv::Point>> &filteredContours)
 {
 	std::vector<std::vector<cv::Point>> contours;									// 存储找到的所有轮廓
 	cv::findContours(binary, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE); // 查找外部轮廓
 
 	filteredContours.clear(); // 清除上一次遍历的结果
 
-	for (const auto& contour : contours)
+	for (const auto &contour : contours)
 	{
 		double length = cv::arcLength(contour, true); // 计算周长
 		double area = cv::contourArea(contour);		  // 计算面积
@@ -74,7 +77,7 @@ void laneDetect::findAndFilterContours(const cv::Mat& binary, const cv::Size& im
 /// <param name="color">轮廓颜色。</param>
 /// <param name="contours">过滤后的轮廓集合。</param>
 /// <param name="outputImage">输出的图像。</param>
-void laneDetect::drawFilteredContours(const cv::Size& imageSize, const cv::Scalar& color, const std::vector<std::vector<cv::Point>>& contours, cv::Mat& outputImage)
+void laneDetect::drawFilteredContours(const cv::Size &imageSize, const cv::Scalar &color, const std::vector<std::vector<cv::Point>> &contours, cv::Mat &outputImage)
 {
 	outputImage = cv::Mat::zeros(imageSize, CV_8UC1); // 创建与原图大小相同的单通道黑色图像
 	for (size_t i = 0; i < contours.size(); ++i)
@@ -88,7 +91,7 @@ void laneDetect::drawFilteredContours(const cv::Size& imageSize, const cv::Scala
 /// </summary>
 /// <param name="originalFrame">原始帧。</param>
 /// <param name="lineOverlay">车道线叠加图像。</param>
-void laneDetect::combineAndStoreFrame(const cv::Mat& originalFrame, const cv::Mat& lineOverlay)
+void laneDetect::combineAndStoreFrame(const cv::Mat &originalFrame, const cv::Mat &lineOverlay)
 {
 	cv::Mat dst; // 最终叠加结果
 	// 按权重叠加原始帧和车道线图像
@@ -107,7 +110,7 @@ void laneDetect::combineAndStoreFrame(const cv::Mat& originalFrame, const cv::Ma
 /// <param name="left_line">左侧车道线点。</param>
 /// <param name="right_line">右侧车道线点。</param>
 /// <returns>叠加了车道线的图像。</returns>
-cv::Mat laneDetect::fitLines(cv::Mat& image, cv::Point* left_line, cv::Point* right_line) // 车道线拟合函数（保持不变）
+cv::Mat laneDetect::fitLines(cv::Mat &image, cv::Point *left_line, cv::Point *right_line) // 车道线拟合函数（保持不变）
 {
 	int height = image.rows; // 获取图像高度
 	int width = image.cols;	 // 获取图像宽度
@@ -202,7 +205,7 @@ cv::Mat laneDetect::fitLines(cv::Mat& image, cv::Point* left_line, cv::Point* ri
 /// </summary>
 /// <param name="frame">输出的处理后图像帧。</param>
 /// <returns>是否成功获取帧。</returns>
-bool laneDetect::getProcessedFrame(cv::Mat& frame)
+bool laneDetect::getProcessedFrame(cv::Mat &frame)
 {
 	std::lock_guard<std::mutex> lock(processed_frame_mutex_);
 	if (!processed_frame_.empty())
